@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
  * @dev Implements a decentralized version of patreon
  */
 
-contract Patreon {
+contract Payment {
     address immutable _owner = 0xF3fb3Cb8b34F5331B82219183c5AdEf40EE10ba5;
 
     function deposit(address _influencerAddress, uint _amount)
