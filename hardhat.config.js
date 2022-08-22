@@ -38,5 +38,5 @@ module.exports = {
 //npx hardhat run --network rinkeby scripts/deploy.js
 //npx hardhat verify --network rinkeby <contract address>
 
-//npx hardhat run --network mumbai scripts/deploy.js
+//npx hardhat run --network mumbai scripts/deploy.js - Deployed To - 0xBF860374D8F921f9d651F4A3f2e88958D10521A1
 //npx hardhat verify --network mumbai <contract address>

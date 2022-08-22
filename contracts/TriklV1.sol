@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 /**
  * @title Trikl
@@ -7,77 +7,89 @@ pragma solidity ^0.8.0;
  */
 
 contract TriklV1 {
-    address owner;
+    // address owner;
+    address private immutable i_owner;
 
     // custom error to save gas
-    error NotOwner();
+    error TriklBasic__NotOwner();
     error InsufficientBalance();
+    error ContractCalling();
+    error TransactionFailed();
 
     /**
-     * @dev Sets the creator the owner of t he smart contract.
+     * @dev Sets creator the owner of the smart contract.
      */
     constructor() {
-        owner = msg.sender;
+        i_owner = msg.sender;
     }
 
     /**
      * @dev Checks if the function is accessed by owner, if not, throws an error .
      */
-    modifier ownerOnly() {
-        if (owner != msg.sender) {
-            revert NotOwner();
-        }
+    modifier onlyOwner() {
+        // require(msg.sender == i_owner);
+        if (msg.sender != i_owner) revert TriklBasic__NotOwner();
         _;
     }
 
-    /********************************************************
+    /*********************************************************
      *                                                       *
      *                    MAIN FUNCTIONS                     *
      *                                                       *
-     ********************************************************/
+     *********************************************************/
 
     /**
-     * @dev Handles the payment for each subscription. This function is
-     * called when the subscriber initiate the transcation to transfer the money to Creator's wallet.
+     * @dev Handles the payment for each subscription.
+     * Called when subscriber initiates transfer to Creator's wallet.
      * 2.5% of the total amount goes to Trikl funds
      *
-     * @param _creatorAddress - The address of the creator to whom the amount (97.5%) would be transfered
-     * msg.value - The amount of tokens being transferred
+     * @param _creatorAddress - Address of creator - 97.5% would be transfered to them
+     * msg.value - Total amount paid by User
      */
     function subscribe(address _creatorAddress) external payable {
-        payable(_creatorAddress).transfer((msg.value * 975) / 1000);
+        if (tx.origin != msg.sender) {
+            revert ContractCalling();
+        }
+        (
+            bool sent, /*memory data*/
+
+        ) = _creatorAddress.call{value: (msg.value * 975) / 1000}("");
+        if (!sent) {
+            revert TransactionFailed();
+        }
     }
 
     /**
-     * @dev Handles the withdrawal of the amount from Smart Contract. This function is only accessible
-     * the owner of the smart contract.
+     * @dev Handles fund withdrawl from Smart Contract.
+     * Only accessible to smart Contract Owner.
      *
-     * @param _withdrawTo - The address to which the owner want the funds from smart contract to be transfered
-     * @param _amount - The amount of tokens being transferred
+     * @param _amount - Amount being transferred from the smart contract
      */
-    function withdraw(address _withdrawTo, uint256 _amount)
-        external
-        payable
-        ownerOnly
-    {
+    function withdraw(uint _amount) external onlyOwner {
         if (_amount > address(this).balance) {
             revert InsufficientBalance();
         }
-        payable(_withdrawTo).transfer(_amount);
+        (
+            bool sent, /*memory data*/
+
+        ) = i_owner.call{value: _amount}("");
+        if (!sent) {
+            revert TransactionFailed();
+        }
     }
 
-    /********************************************************
+    /*********************************************************
      *                                                       *
-     *                     GET FUNCTIONS                     *
+     *                    GET FUNCTIONS                      *
      *                                                       *
-     ********************************************************/
+     *********************************************************/
 
     /**
      * @dev get functions to check the owner of the smart contract and
      * to fetch the balance of the smart contract
      */
     function getOwner() external view returns (address) {
-        return owner;
+        return i_owner;
     }
 
     function getBalance() external view returns (uint256) {

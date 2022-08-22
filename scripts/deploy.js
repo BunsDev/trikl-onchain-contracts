@@ -7,12 +7,12 @@
 const hre = require("hardhat");
 
 async function main() {
-  const Payment = await hre.ethers.getContractFactory("Payment");
-  const payment = await Payment.deploy();
+  const Trikl = await hre.ethers.getContractFactory("TriklV1");
+  const trikl = await Trikl.deploy();
 
-  await payment.deployed();
+  await trikl.deployed();
 
-  console.log("Contract is being deployed to ", payment.address);
+  console.log("Contract is being deployed to ", trikl.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
